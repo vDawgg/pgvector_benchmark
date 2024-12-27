@@ -1,0 +1,28 @@
+from tqdm import tqdm
+
+from models.models import Item
+from db.operations import bulk_insert
+from datasets import load_from_disk
+
+# TODO: Pickle init set!
+def make_init_set():
+    ds = load_from_disk("./data/dataset/test_dataset.hf")
+
+    items = []
+    for item in tqdm(ds):
+        for i in range(len(item["passages"])):
+            items.append(
+                Item(
+                    q_id=item["query_id"],
+                    text=item["passages"][i],
+                    vec=item["passage_embeddings"][i]
+                )
+            )
+    return items
+
+def fill_db():
+    print('Making initial set')
+    init_set = make_init_set()
+    print('Inserting initial set into db')
+    bulk_insert(init_set)
+    print('Done inserting initial set')
