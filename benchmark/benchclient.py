@@ -4,17 +4,17 @@ from time import time
 from typing import Tuple
 from multiprocessing import Pool
 
-import torch
+from datasets import load_from_disk
 from tqdm import tqdm
 
-from db.db import get_session
+from db.db import DB
 from db.operations import query_db, add_items
 from models.models import Item
 
 # TODO: Set trace dir somewhere centrally
 current_dir = os.path.dirname(os.path.realpath(__file__))
 results_dir = os.path.join(current_dir, "results")
-trace_ds = torch.load(os.path.join(current_dir, 'trace/trace.pt'))
+trace_ds = load_from_disk(os.path.join(current_dir, 'trace/trace.hf'))
 
 def save_items(idx: int):
     start = time()
@@ -27,12 +27,12 @@ def save_items(idx: int):
                 vec=trace_ds[idx]['passage_embeddings'][i],
             )
         )
-    add_items(items)
+    add_items(items, db.SessionLocal)
     return start, time()
 
 def send_request(idx: int):
     start = time()
-    answer = query_db(trace_ds[idx]['query_embeddings'])
+    answer = query_db(trace_ds[idx]['query_embeddings'], db.SessionLocal)
     return start, time(), answer
 
 def execute_interaction(idx: Tuple[int, int]):
@@ -40,12 +40,16 @@ def execute_interaction(idx: Tuple[int, int]):
     query_log = send_request(idx[1])
     return item_log, query_log
 
-def execute_benchmark():
-    print("Starting benchmark...")
-    insert_idx = pickle.load(open(os.path.join(current_dir, 'trace/insert_trace.pkl'), 'rb'))[:10000]
-    query_idx = pickle.load(open(os.path.join(current_dir, 'trace/query_trace.pkl'), 'rb'))[:1000]
+def init_process(pg_url: str) -> None:
+    global db
+    db = DB(pg_url)
 
-    pool = Pool(os.cpu_count()-4, initializer=get_session) # TODO: Change this value once deploying!
-    item_log, query_log = zip(*tqdm(pool.imap(execute_interaction, zip(insert_idx, query_idx)), total=1000))
+def execute_benchmark(pg_url: str):
+    print("Starting benchmark...")
+    insert_idx = pickle.load(open(os.path.join(current_dir, 'trace/insert_trace.pkl'), 'rb'))[:100]
+    query_idx = pickle.load(open(os.path.join(current_dir, 'trace/query_trace.pkl'), 'rb'))[:100]
+
+    pool = Pool(os.cpu_count(), initializer=init_process, initargs=(pg_url,))
+    item_log, query_log = zip(*tqdm(pool.imap(execute_interaction, zip(insert_idx, query_idx)), total=100))
     pickle.dump(item_log, open(os.path.join(results_dir, 'item_log.pkl'), 'wb'))
     pickle.dump(query_log, open(os.path.join(results_dir, 'query_log.pkl'), 'wb'))

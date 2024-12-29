@@ -1,10 +1,8 @@
 import pickle
 import random
 import os
-from typing import List, Tuple
 
-import torch.utils.data
-from datasets import load_from_disk
+from datasets import load_from_disk, concatenate_datasets
 
 
 def make_trace():
@@ -15,8 +13,8 @@ def make_trace():
         os.path.join(os.path.dirname(os.path.realpath(__file__)), "../data/dataset/train_dataset.hf")
     )
     train_ds.shuffle()
-    trace_ds = torch.utils.data.ConcatDataset([test_ds, train_ds])
-    torch.save(trace_ds, os.path.join("./trace/trace.pt"))
+    trace_ds = concatenate_datasets([test_ds, train_ds])
+    trace_ds.save_to_disk(os.path.join("./trace/trace.hf"))
 
     insert_idx = range(len(test_ds), len(trace_ds))
     query_idx = [random.randint(0, len(test_ds) + i - 1) for i in range(len(train_ds))]

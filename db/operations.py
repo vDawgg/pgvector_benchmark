@@ -1,18 +1,18 @@
-from sqlalchemy import select, Index
+from typing import Sequence
+
+from sqlalchemy import select, Index, Engine
+from sqlalchemy.orm import sessionmaker, Session
 from tqdm import tqdm
 from pgvector.psycopg import register_vector
 import psycopg
 
-from db.db import SessionLocal, engine
 from models.models import *
 
 
 # Bulk insert using psycopg for faster setup
-def bulk_insert(items: [Item]):
+def bulk_insert(items: [Item], pg_url: str) -> None:
     print(f"> Inserting {len(items)} items in bulk...")
-
-    # TODO: Set this somewhere centrally!
-    with psycopg.connect("postgresql://postgres:123@localhost:5432/postgres") as conn:
+    with psycopg.connect(f'postgresql://{pg_url.split("//")[1]}:5432/postgres') as conn:
         register_vector(conn)
         with conn.cursor() as cur:
             with cur.copy("COPY vecdatatable (q_id, text, vec) FROM STDIN WITH (FORMAT BINARY)") as copy:
@@ -22,23 +22,23 @@ def bulk_insert(items: [Item]):
         conn.commit()
 
 
-def is_empty():
+def is_empty(SessionLocal: sessionmaker[Session]) -> int:
     with SessionLocal() as session:
         return session.query(Item).count() == 0
 
 
-def add_item(item: Item):
+def add_item(item: Item, SessionLocal: sessionmaker[Session]) -> None:
     with SessionLocal() as session:
         session.add(item)
         session.commit()
 
 
-def add_items(items: [Item]):
+def add_items(items: [Item], SessionLocal: sessionmaker[Session]) -> None:
     with SessionLocal() as session:
         session.add_all(items)
         session.commit()
 
-def query_db(query: Item, n=5):
+def query_db(query: Item, SessionLocal: sessionmaker[Session], n=5) -> Sequence[Item]:
     with SessionLocal() as session:
         answer = (
             session
@@ -53,7 +53,7 @@ def query_db(query: Item, n=5):
 
 
 # TODO: Look into the config options being made here!
-def add_hnsw():
+def add_hnsw(engine: Engine) -> None:
     Index(
         'my_index',
         Item.vec,
@@ -64,7 +64,7 @@ def add_hnsw():
 
 
 # TODO: Look into the config options being made here!
-def add_ivfflat():
+def add_ivfflat(engine: Engine) -> None:
     Index(
         'my_index',
         Item.vec,

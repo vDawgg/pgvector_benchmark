@@ -1,7 +1,7 @@
-from sqlalchemy import Integer, String, Column
+from db.db import Base
+from sqlalchemy import Integer, String, Column, Engine
 from sqlalchemy.orm import mapped_column
 from pgvector.sqlalchemy import Vector
-from db.db import Base, engine
 
 # TODO: Think about setting this some other way
 dim = 768
@@ -14,5 +14,5 @@ class Item(Base):
     text = Column(String, nullable=False)
     vec = mapped_column(Vector(dim), nullable=False)
 
-
-Base.metadata.create_all(bind=engine)
+def init_mappings(engine: Engine) -> None:
+    Base.metadata.create_all(bind=engine)
