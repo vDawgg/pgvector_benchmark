@@ -12,6 +12,7 @@ sudo apt install -y -q docker-ce
 
 sudo service docker-ce start
 sudo docker pull pgvector/pgvector:pg17
-sudo docker run --name pgvector -e POSTGRES_PASSWORD=123 -d -p 5432:5432 206f8e0dc14e # TODO: Think about adding resource constraints here and parameterizing the password
+IMAGE_ID="$(docker images --format "{{.ID}}")"
+sudo docker run --name pgvector -e POSTGRES_PASSWORD=123 -d -p 5432:5432 "$IMAGE_ID"
 
 touch /done

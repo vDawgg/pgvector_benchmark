@@ -1,5 +1,5 @@
 provider "google" {
-  project = "benchmark" # TODO: Parameterize this!
+  project = "benchmark-446021" # TODO: Parameterize this!
   region  = "europe-west3"
   zone    = "europe-west3-c"
 }

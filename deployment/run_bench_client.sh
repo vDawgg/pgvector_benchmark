@@ -1,4 +1,4 @@
-cd ..
+cd ~/pgvector_benchmark
 
 pip install -r requirements.txt
 
