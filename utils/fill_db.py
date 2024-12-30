@@ -4,7 +4,6 @@ from models.models import Item
 from db.operations import bulk_insert
 from datasets import load_from_disk
 
-# TODO: Pickle init set!
 def make_init_set():
     ds = load_from_disk("./data/dataset/test_dataset.hf")
 
@@ -20,9 +19,9 @@ def make_init_set():
             )
     return items
 
-def fill_db():
+def fill_db(pg_url: str):
     print('Making initial set')
     init_set = make_init_set()
     print('Inserting initial set into db')
-    bulk_insert(init_set)
+    bulk_insert(init_set, pg_url)
     print('Done inserting initial set')
