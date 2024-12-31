@@ -32,7 +32,7 @@ resource "google_compute_instance" "SUT" {
       image = "ubuntu-2004-focal-v20231101"
     }
   }
-  metadata_startup_script = file("startup_sut.sh")
+  metadata_startup_script = file("./startup_sut.sh")
 
 
   network_interface {
@@ -54,7 +54,7 @@ resource "google_compute_instance" "client" {
       size  = 80
     }
   }
-  metadata_startup_script = file("startup_client.sh")
+  metadata_startup_script = file("./startup_client.sh")
 
 
   network_interface {

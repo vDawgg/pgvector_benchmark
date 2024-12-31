@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #Autostart services https://askubuntu.com/questions/1367139/apt-get-upgrade-auto-restart-services
 export DEBIAN_FRONTEND=noninteractive
 
