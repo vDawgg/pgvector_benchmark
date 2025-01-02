@@ -1,6 +1,6 @@
 cd /pgvector_benchmark
 
-gsutil gs://bench-data-bucket/trace.tar.gz /pgvector_benchmark/benchmark
+gsutil cp gs://bench-data-bucket/trace.tar.gz /pgvector_benchmark/benchmark
 
 tar -xvf /pgvector_benchmark/benchmark/trace.tar.gz /pgvector_benchmark/benchmark/trace
 
