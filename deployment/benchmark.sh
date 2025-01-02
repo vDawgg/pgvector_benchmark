@@ -20,9 +20,6 @@ while true; do
   fi
 done
 
-# Copy the trace data to the client instance
-gcloud compute scp --project $PROJECT_ID --zone $ZONE ../benchmark/trace.tar.gz $INSTANCE_NAME:/pgvector_benchmark/benchmark
-
 # Get the client instances IP addr
 SUT_IP="$(gcloud compute instances describe $INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --format='get(networkInterfaces[0].accessConfigs[0].natIP)')"
 

@@ -1,7 +1,9 @@
 cd /pgvector_benchmark
 
-pip install -r requirements.txt
+gsutil gs://bench-data-bucket/trace.tar.gz /pgvector_benchmark/benchmark
 
-tar -xvf benchmark/trace.tar.gz benchmark/trace
+tar -xvf /pgvector_benchmark/benchmark/trace.tar.gz /pgvector_benchmark/benchmark/trace
+
+pip install -r requirements.txt
 
 python main.py $1
