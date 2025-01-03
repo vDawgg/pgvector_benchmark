@@ -7,6 +7,6 @@ sudo apt update
 sudo apt upgrade -y
 sudo apt install -y -q git python3-pip
 python3 -m pip install --upgrade pip
-cd ~
 git clone https://github.com/vDawgg/pgvector_benchmark
+
 touch /done
