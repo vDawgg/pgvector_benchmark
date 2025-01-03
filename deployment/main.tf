@@ -48,6 +48,11 @@ resource "google_compute_instance" "client" {
   name         = "pgvector-client"
   machine_type = "e2-standard-2"
 
+  service_account {
+    email  = "default"
+    scopes = ["cloud-platform"]
+  }
+
   boot_disk {
     initialize_params {
       image = "ubuntu-2004-focal-v20231101"

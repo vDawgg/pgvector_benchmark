@@ -13,7 +13,9 @@ def make_trace():
         os.path.join(os.path.dirname(os.path.realpath(__file__)), "../data/dataset/train_dataset.hf")
     )
     train_ds.shuffle()
-    trace_ds = concatenate_datasets([test_ds, train_ds])
+    sharded_train_ds = train_ds.shard(2, 0)
+    print(len(sharded_train_ds))
+    trace_ds = concatenate_datasets([test_ds, sharded_train_ds])
     trace_ds.save_to_disk(os.path.join("./trace/trace.hf"))
 
     insert_idx = range(len(test_ds), len(trace_ds))
