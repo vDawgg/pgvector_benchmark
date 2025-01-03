@@ -24,7 +24,7 @@ done
 SUT_IP="$(gcloud compute instances describe $INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --format='get(networkInterfaces[0].accessConfigs[0].natIP)')"
 
 # Set up and run the project on the client instance
-gcloud compute ssh $INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --command "sh /pgvector_benchmark/deployment/run_bench_client.sh $SUT_IP"
+gcloud compute ssh $INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --command "sh ~/pgvector_benchmark/deployment/run_bench_client.sh $SUT_IP"
 
 # Wait for benchmark to finish
 while true; do

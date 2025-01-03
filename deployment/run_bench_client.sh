@@ -1,7 +1,5 @@
 cd ~
 
-git clone https://github.com/vDawgg/pgvector_benchmark
-
 cd ~/pgvector_benchmark
 
 sudo gsutil cp gs://bench-data-bucket/trace.tar.gz ~/pgvector_benchmark/benchmark
