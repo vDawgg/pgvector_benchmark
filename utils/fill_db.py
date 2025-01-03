@@ -5,10 +5,10 @@ from db.operations import bulk_insert
 from datasets import load_from_disk
 
 def make_init_set():
-    ds = load_from_disk("./data/dataset/test_dataset.hf")
+    ds = load_from_disk('./benchmark/trace/trace.hf')  # TODO: Parameterize this properly
 
     items = []
-    for item in tqdm(ds):
+    for item in tqdm(ds.select(range(100058))):
         for i in range(len(item["passages"])):
             items.append(
                 Item(

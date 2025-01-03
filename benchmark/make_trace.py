@@ -14,7 +14,6 @@ def make_trace():
     )
     train_ds.shuffle()
     sharded_train_ds = train_ds.shard(2, 0)
-    print(len(sharded_train_ds))
     trace_ds = concatenate_datasets([test_ds, sharded_train_ds])
     trace_ds.save_to_disk(os.path.join("./trace/trace.hf"))
 

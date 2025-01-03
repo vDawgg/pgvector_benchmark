@@ -1,4 +1,5 @@
-INSTANCE_NAME="pgvector-client"
+CLIENT_INSTANCE_NAME="pgvector-client"
+SUT_INSTANCE_NAME="pgvector-sut"
 ZONE="europe-west3-c"
 PROJECT_ID=benchmark-446021
 
@@ -10,7 +11,7 @@ sleep 10
 
 # Check for startup_script completion on client instance
 while true; do
-  if gcloud compute ssh "$INSTANCE_NAME" \
+  if gcloud compute ssh "$CLIENT_INSTANCE_NAME" \
       --project="$PROJECT_ID" \
       --zone="$ZONE" \
       --command="test -f /done" 2>/dev/null; then
@@ -21,14 +22,14 @@ while true; do
 done
 
 # Get the client instances IP addr
-SUT_IP="$(gcloud compute instances describe $INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --format='get(networkInterfaces[0].accessConfigs[0].natIP)')"
+SUT_IP="$(gcloud compute instances describe $SUT_INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --format='get(networkInterfaces[0].accessConfigs[0].natIP)')"
 
 # Set up and run the project on the client instance
-gcloud compute ssh $INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --command "sudo sh /pgvector_benchmark/deployment/run_bench_client.sh $SUT_IP"
+gcloud compute ssh $CLIENT_INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --command "sudo sh /pgvector_benchmark/deployment/run_bench_client.sh $SUT_IP"
 
 # Wait for benchmark to finish
 while true; do
-  if gcloud compute ssh "$INSTANCE_NAME" \
+  if gcloud compute ssh "$CLIENT_INSTANCE_NAME" \
       --project="$PROJECT_ID" \
       --zone="$ZONE" \
       --command="test -f /pgvector_benchmark/benchmark/results/query_log.pkl" 2>/dev/null; then
@@ -39,7 +40,7 @@ while true; do
 done
 
 # Copy the results from the client instance
-gcloud compute scp --project $PROJECT_ID --zone $ZONE $INSTANCE_NAME:/pgvector_benchmark/benchmark/results/* ../benchmark/results
+gcloud compute scp --project $PROJECT_ID --zone $ZONE $CLIENT_INSTANCE_NAME:/pgvector_benchmark/benchmark/results/* ../benchmark/results
 
 # Destroy the resources
 terraform destroy -auto-approve
