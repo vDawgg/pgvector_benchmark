@@ -25,8 +25,8 @@ done
 SUT_IP="$(gcloud compute instances describe $SUT_INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --format='get(networkInterfaces[0].accessConfigs[0].natIP)')"
 
 # Start logging the resource usage on the SUT instance
-gcloud compute scp --project $PROJECT_ID --zone $ZONE ./resource_usage.sh $SUT_INSTANCE_NAME:/.
-gcloud compute ssh $SUT_INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --command "nohup sh /resource_usage.sh &"
+gcloud compute scp --project $PROJECT_ID --zone $ZONE ./resource_usage.sh $SUT_INSTANCE_NAME:~
+gcloud compute ssh $SUT_INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --command "nohup sh ~/resource_usage.sh &"
 
 # Set up and run the project on the client instance
 gcloud compute ssh $CLIENT_INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --command "sudo sh /pgvector_benchmark/deployment/run_bench_client.sh $SUT_IP"
