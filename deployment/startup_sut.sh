@@ -10,7 +10,7 @@ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
 sudo add-apt-repository --yes "deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable"
 sudo apt update
 sudo apt upgrade -y
-sudo apt install -y -q docker-ce
+sudo apt install -y -q docker-ce sysstat
 
 sudo service docker-ce start
 sudo docker pull pgvector/pgvector:pg17

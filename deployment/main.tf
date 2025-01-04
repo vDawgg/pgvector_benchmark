@@ -46,7 +46,7 @@ resource "google_compute_instance" "SUT" {
 ### BENCHMARK CLIENT INSTANCE
 resource "google_compute_instance" "client" {
   name         = "pgvector-client"
-  machine_type = "e2-standard-2"
+  machine_type = "e2-standard-4"
 
   service_account {
     email  = "default"
