@@ -8,7 +8,7 @@ def make_init_set():
     ds = load_from_disk('./benchmark/trace/trace.hf')  # TODO: Parameterize this properly
 
     items = []
-    for item in tqdm(ds.select(range(100058))):
+    for item in tqdm(ds.select(range(10000))): # TODO: This needs to be a lot smaller or the other machine much larger
         for i in range(len(item["passages"])):
             items.append(
                 Item(
