@@ -6,7 +6,7 @@ OUTFILE="/tmp/sut_resource_usage.csv"
 echo "timestamp,cpu_used,mem_used" > "$OUTFILE"
 
 # Repeatedly capture CPU + Mem usage
-while True; do
+while true; do
   # sar -u 1 1 -> capture CPU usage in a single snapshot over 1s
   CPU_USED=$(sar -u 1 1 | awk '/Average/ && /all/ { print 100 - $8 }')
 
