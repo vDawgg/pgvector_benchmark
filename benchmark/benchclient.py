@@ -46,10 +46,10 @@ def init_process(pg_url: str) -> None:
 
 def execute_benchmark(pg_url: str):
     print("Starting benchmark...")
-    insert_idx = pickle.load(open(os.path.join(current_dir, 'trace/insert_trace.pkl'), 'rb'))[:100]
-    query_idx = pickle.load(open(os.path.join(current_dir, 'trace/query_trace.pkl'), 'rb'))[:100]
+    insert_idx = pickle.load(open(os.path.join(current_dir, 'trace/insert_trace.pkl'), 'rb'))
+    query_idx = pickle.load(open(os.path.join(current_dir, 'trace/query_trace.pkl'), 'rb'))
 
     pool = Pool(os.cpu_count(), initializer=init_process, initargs=(pg_url,))
-    item_log, query_log = zip(*tqdm(pool.imap(execute_interaction, zip(insert_idx, query_idx)), total=100))
+    item_log, query_log = zip(*tqdm(pool.imap(execute_interaction, zip(insert_idx, query_idx)), total=len(insert_idx)))
     pickle.dump(item_log, open(os.path.join(results_dir, 'item_log.pkl'), 'wb'))
     pickle.dump(query_log, open(os.path.join(results_dir, 'query_log.pkl'), 'wb'))
