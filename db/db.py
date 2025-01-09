@@ -17,4 +17,6 @@ class DB:
     def get_session(self):
         self.engine = create_engine(self.pg_url, poolclass=NullPool)  # . pool_pre_ping=True)
         self.SessionLocal = sessionmaker(bind=self.engine)
-        print("Engine created and SessionLocal set up in PID:", os.getpid())
+
+    def teardown(self):
+        self.engine.dispose()
