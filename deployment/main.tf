@@ -24,7 +24,12 @@ resource "google_compute_firewall" "all" {
 ### SUT INSTANCE
 resource "google_compute_instance" "SUT" {
   name         = "pgvector-sut"
-  machine_type = "e2-standard-2"
+  machine_type = "e2-highcpu-8"
+
+  service_account {
+    email  = "default"
+    scopes = ["cloud-platform"]
+  }
 
   boot_disk {
     initialize_params {
