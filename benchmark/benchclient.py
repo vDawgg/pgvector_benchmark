@@ -54,7 +54,7 @@ async def execute_benchmark(pg_url: str):
 
     trace = pickle.load(open(os.path.join(current_dir, 'trace/trace.pkl'), 'rb'))
 
-    users: List[User] = [User(pg_url, random.randint(1, 10)) for _ in range(10)]
+    users: List[User] = [User(DB(pg_url), random.randint(1, 10)) for _ in range(10)]
     num_users = []
     inserts = []
     queries = []
