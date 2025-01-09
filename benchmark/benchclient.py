@@ -66,7 +66,7 @@ async def execute_benchmark(pg_url: str):
 
         cur_user = random.choice(users)
 
-        await asyncio.sleep(max(0, arrival - (time() - start)))
+        #await asyncio.sleep(max(0, arrival - (time() - start)))
 
         if type == "insert":
             inserts.append(asyncio.create_task(save_items(idx, cur_user.db)))
