@@ -11,11 +11,6 @@ sudo add-apt-repository --yes "deb [arch=amd64] https://download.docker.com/linu
 sudo apt update
 sudo apt upgrade -y
 sudo apt install -y -q docker-ce sysstat
-
-# Install ops agent
-curl -sSO https://dl.google.com/cloudagents/add-google-cloud-ops-agent-repo.sh
-sudo bash add-google-cloud-ops-agent-repo.sh --also-install
-
 sudo service docker-ce start
 sudo docker pull pgvector/pgvector:pg17
 IMAGE_ID="$(docker images --format "{{.ID}}")"
