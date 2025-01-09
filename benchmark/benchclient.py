@@ -4,6 +4,7 @@ import asyncio
 import random
 from time import time
 from typing import List
+from multiprocessing.pool import Pool
 
 from datasets import load_from_disk
 from tqdm import tqdm
@@ -48,37 +49,53 @@ async def send_request(idx: int, db: DB):
     answer = query_db(trace_ds[idx]['query_embeddings'], db.SessionLocal)
     return start, time(), answer
 
-async def execute_benchmark(pg_url: str):
-    print("Starting benchmark...")
-    start = time()
-
-    trace = pickle.load(open(os.path.join(current_dir, 'trace/trace.pkl'), 'rb'))
-
-    users: List[User] = [User(DB(pg_url), random.randint(1, 10)) for _ in range(10)]
-    num_users = []
+async def run_user(trace, db: DB):
     inserts = []
     queries = []
-    for type, idx, arrival in tqdm(trace):
-        filter(lambda u: u.curr_queries >= u.max_queries, users)
-
-        if random.random() > 0.5:
-            users.append(User(DB(pg_url), random.randint(1, 10)))
-
-        cur_user = random.choice(users)
-
-        #await asyncio.sleep(max(0, arrival - (time() - start)))
-
+    for type, idx, arrival in trace:
         if type == "insert":
-            inserts.append(asyncio.create_task(save_items(idx, cur_user.db)))
+            inserts.append(await save_items(idx, db))
         else:
-            queries.append(asyncio.create_task(send_request(idx, cur_user.db)))
-        num_users.append(len(users))
+            queries.append(await send_request(idx, db))
 
-        cur_user.increment_cur_queries()
+    return inserts, queries
 
-    item_log = await asyncio.gather(*inserts)
-    query_log = await asyncio.gather(*queries)
+async def run_users(trace):
+    num_users = 10
 
-    pickle.dump(num_users, open(os.path.join(current_dir, 'results/num_users.pkl'), 'wb'))
+    steps = int(len(trace)/num_users)
+    tasks = []
+    for i in range(0, len(trace), steps):
+        tasks.append(asyncio.create_task(run_user(trace[i:i+steps], DB(db_url))))
+
+    results = await asyncio.gather(*tasks)
+
+    inserts, queries = [], []
+    for i, q in results:
+        inserts.extend(i)
+        queries.extend(q)
+
+    return inserts, queries
+
+def start_coroutine(trace):
+    inserts, queries = asyncio.run(run_users(trace))
+    return inserts, queries
+
+def chunkify_fixed(lst, chunk_size):
+    for i in range(0, len(lst), chunk_size):
+        yield lst[i:i+chunk_size]
+
+def execute_benchmark(pg_url: str):
+    global db_url
+    db_url = pg_url
+
+    print("Starting benchmark...")
+
+    trace = pickle.load(open(os.path.join(current_dir, 'trace/trace.pkl'), 'rb'))
+    chunks = chunkify_fixed(trace[:50], os.cpu_count())
+
+    pool = Pool()
+    item_log, query_log = zip(*pool.imap(start_coroutine, chunks))
+
     pickle.dump(item_log, open(os.path.join(results_dir, 'item_log.pkl'), 'wb'))
     pickle.dump(query_log, open(os.path.join(results_dir, 'query_log.pkl'), 'wb'))

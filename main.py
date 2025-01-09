@@ -13,5 +13,5 @@ if __name__ == '__main__':
     init_mappings(db.engine)
     if is_empty(db.SessionLocal):
         fill_db(pg_url)
-    asyncio.run(execute_benchmark(db.pg_url))
+    execute_benchmark(db.pg_url)
     print('DONE')
