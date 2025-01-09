@@ -51,24 +51,20 @@ def query_db(query: Item, SessionLocal: sessionmaker[Session], n=5) -> Sequence[
         session.commit()
         return answer.all()
 
-
-# TODO: Look into the config options being made here!
 def add_hnsw(engine: Engine) -> None:
     Index(
         'my_index',
         Item.vec,
         postgresql_using='hnsw',
-        postgresql_with={'m': 16, 'ef_construction': 64},
+        postgresql_with={'m': 10, 'ef_construction': 20}, # This can be chosen rather arbitrarily, might still be interesting to tune
         postgresql_ops={'vec': 'vector_l2_ops'}
     ).create(engine)
 
-
-# TODO: Look into the config options being made here!
 def add_ivfflat(engine: Engine) -> None:
     Index(
         'my_index',
         Item.vec,
         postgresql_using='ivfflat',
-        postgresql_with={'lists': 100},
+        postgresql_with={'lists': 100, 'probes': 10}, # This is recommended for DS smaller than 1 MIO rows (lists=rows/1000), probes should be sqrt(lists)
         postgresql_ops={'vec': 'vector_l2_ops'}
     ).create(engine)
