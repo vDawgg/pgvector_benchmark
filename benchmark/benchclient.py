@@ -89,7 +89,7 @@ def execute_benchmark(pg_url: str):
     print("Starting benchmark...")
 
     trace = pickle.load(open(os.path.join(current_dir, 'trace/trace.pkl'), 'rb'))
-    chunks = make_batch_for_cpu_cores(trace[:200], os.cpu_count())
+    chunks = make_batch_for_cpu_cores(trace, os.cpu_count())
 
     pool = Pool()
     item_log, query_log = zip(*pool.imap(start_coroutine, chunks))
