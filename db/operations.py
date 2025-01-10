@@ -65,6 +65,6 @@ def add_ivfflat(engine: Engine) -> None:
         'my_index',
         Item.vec,
         postgresql_using='ivfflat',
-        postgresql_with={'lists': 100, 'probes': 10}, # This is recommended for DS smaller than 1 MIO rows (lists=rows/1000), probes should be sqrt(lists)
+        postgresql_with={'lists': 100}, # This is recommended for DS smaller than 1 MIO rows (lists=rows/1000), probes should be sqrt(lists)
         postgresql_ops={'vec': 'vector_l2_ops'}
     ).create(engine)

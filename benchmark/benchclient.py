@@ -1,13 +1,10 @@
 import os.path
 import pickle
 import asyncio
-import random
 from time import time
-from typing import List
 from multiprocessing.pool import Pool
 
 from datasets import load_from_disk
-from tqdm import tqdm
 
 from db.db import DB
 from db.operations import query_db, add_items
@@ -92,7 +89,7 @@ def execute_benchmark(pg_url: str):
     print("Starting benchmark...")
 
     trace = pickle.load(open(os.path.join(current_dir, 'trace/trace.pkl'), 'rb'))
-    chunks = make_batch_for_cpu_cores(trace, os.cpu_count())
+    chunks = make_batch_for_cpu_cores(trace[:200], os.cpu_count())
 
     pool = Pool()
     item_log, query_log = zip(*pool.imap(start_coroutine, chunks))
