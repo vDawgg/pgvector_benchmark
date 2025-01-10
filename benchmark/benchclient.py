@@ -81,9 +81,9 @@ def start_coroutine(trace):
     inserts, queries = asyncio.run(run_users(trace))
     return inserts, queries
 
-def chunkify_fixed(lst, chunk_size):
-    for i in range(0, len(lst), chunk_size):
-        yield lst[i:i+chunk_size]
+def make_batch_for_cpu_cores(lst, num_cores):
+    batch_size = len(lst) // num_cores
+    return [lst[i:i+batch_size] for i in range(0, len(lst), batch_size)]
 
 def execute_benchmark(pg_url: str):
     global db_url
@@ -92,7 +92,7 @@ def execute_benchmark(pg_url: str):
     print("Starting benchmark...")
 
     trace = pickle.load(open(os.path.join(current_dir, 'trace/trace.pkl'), 'rb'))
-    chunks = chunkify_fixed(trace, os.cpu_count())
+    chunks = make_batch_for_cpu_cores(trace, os.cpu_count())
 
     pool = Pool()
     item_log, query_log = zip(*pool.imap(start_coroutine, chunks))
