@@ -61,6 +61,7 @@ async def run_users(trace):
     num_users = 10
 
     steps = int(len(trace)/num_users)
+    steps = 1 if steps == 0 else steps
     tasks = []
     for i in range(0, len(trace), steps):
         tasks.append(asyncio.create_task(run_user(trace[i:i+steps], DB(db_url))))
@@ -92,7 +93,12 @@ def execute_benchmark(pg_url: str):
     chunks = make_batch_for_cpu_cores(trace, os.cpu_count())
 
     pool = Pool()
-    item_log, query_log = zip(*pool.imap(start_coroutine, chunks))
+    results = pool.imap(start_coroutine, chunks)
+
+    item_log, query_log = [], []
+    for i, q in results:
+        item_log.extend(i)
+        query_log.extend(q)
 
     pickle.dump(item_log, open(os.path.join(results_dir, 'item_log.pkl'), 'wb'))
     pickle.dump(query_log, open(os.path.join(results_dir, 'query_log.pkl'), 'wb'))
