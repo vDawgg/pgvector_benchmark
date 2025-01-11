@@ -21,6 +21,20 @@ resource "google_compute_firewall" "all" {
   source_ranges = ["0.0.0.0/0"]
 }
 
+resource "google_compute_router" "nat_router" {
+  name    = "benchmark-nat-router"
+  network = google_compute_network.vpc_network.id
+  region  = "europe-west3"
+}
+
+resource "google_compute_router_nat" "nat_config" {
+  name                       = "benchmark-nat"
+  router                     = google_compute_router.nat_router.name
+  region                     = "europe-west3"
+  nat_ip_allocate_option     = "AUTO_ONLY"
+  source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
+}
+
 ### SUT INSTANCE
 resource "google_compute_instance" "SUT" {
   name         = "pgvector-sut"
@@ -42,9 +56,6 @@ resource "google_compute_instance" "SUT" {
 
   network_interface {
     network = google_compute_network.vpc_network.id
-    access_config {
-      # Include this section to give the VM an external IP address
-    }
   }
 }
 
@@ -69,8 +80,5 @@ resource "google_compute_instance" "client" {
 
   network_interface {
     network = google_compute_network.vpc_network.id
-    access_config {
-      # Include this section to give the VM an external IP address
-    }
   }
 }
