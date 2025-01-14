@@ -34,6 +34,13 @@ async def send_request(idx: int, db: DB):
     answer = query_db(trace_ds[idx]['query_embeddings'], db.SessionLocal)
     return start, time(), answer
 
+async def run_with_timeout(user_run_coro, type, timeout_sec=10):
+    try:
+        res = await asyncio.wait_for(user_run_coro, timeout=timeout_sec)
+        return res, type
+    except asyncio.TimeoutError:
+        return None, type
+
 class User:
     def __init__(self, _db):
         self.db = _db
@@ -61,16 +68,16 @@ async def execute_benchmark(pg_url: str):
     for type, idx, arrival in tqdm(trace):
         await asyncio.sleep(max(0, arrival - (time() - start)))
         user = users.pop(0)
-        tasks.append(asyncio.create_task(user.run(idx, type, arrival, start)))
+        tasks.append(asyncio.create_task(run_with_timeout(user.run(idx, type, arrival, start), type)))
         users.append(user)
 
     results = await asyncio.gather(*tasks)
 
     item_log, query_log = [], []
-    for r in results:
-        if len(r) == 2:
+    for r, t in results:
+        if t == 'insert':
             item_log.append(r)
-        else:
+        elif t == 'query':
             query_log.append(r)
 
     pickle.dump(item_log, open(os.path.join(results_dir, 'item_log.pkl'), 'wb'))
