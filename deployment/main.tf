@@ -47,7 +47,7 @@ resource "google_compute_instance" "SUT" {
 
   boot_disk {
     initialize_params {
-      size  = 80
+      size  = 40
       image = "ubuntu-2004-focal-v20231101"
     }
   }
@@ -72,7 +72,7 @@ resource "google_compute_instance" "client" {
   boot_disk {
     initialize_params {
       image = "ubuntu-2004-focal-v20231101"
-      size  = 80
+      size  = 40
     }
   }
   metadata_startup_script = file("./startup_client.sh")

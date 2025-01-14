@@ -1,3 +1,4 @@
+import asyncio
 from argparse import ArgumentParser
 
 from db.db import DB
@@ -21,5 +22,5 @@ if __name__ == '__main__':
     if is_empty(db.SessionLocal):
         fill_db(pg_url)
     add_index(db, indexing_method)
-    execute_benchmark(db.pg_url)
+    asyncio.run(execute_benchmark(db.pg_url))
     print('DONE')
