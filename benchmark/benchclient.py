@@ -40,7 +40,6 @@ class User:
         self.cur_queries = 0
 
     async def run(self, idx, request_type, arrival, start):
-        await asyncio.sleep(max(0, arrival - (start - time())))
         if request_type == 'query':
             return await send_request(idx, self.db)
         else:
@@ -60,6 +59,7 @@ async def execute_benchmark(pg_url: str):
     tasks = []
     start = time()
     for type, idx, arrival in tqdm(trace):
+        await asyncio.sleep(max(0, arrival - (time() - start)))
         user = users.pop(0)
         tasks.append(asyncio.create_task(user.run(idx, type, arrival, start)))
         users.append(user)
