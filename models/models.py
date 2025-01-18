@@ -3,7 +3,6 @@ from sqlalchemy import Integer, String, Column, Engine
 from sqlalchemy.orm import mapped_column
 from pgvector.sqlalchemy import Vector
 
-# TODO: Think about setting this some other way
 dim = 768
 
 

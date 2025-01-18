@@ -7,6 +7,7 @@ from db.utils import fill_db, add_index
 from db.operations import is_empty
 from benchmark.benchclient import execute_benchmark
 
+
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument("--db_host", help="Host of database (e.g. localhost)", default="localhost")
@@ -14,13 +15,17 @@ if __name__ == '__main__':
     args = parser.parse_args()
     args = vars(args)
 
-    pg_url = f"postgresql+psycopg://postgres:123@{args.pop('db_host')}"
+    db_host = args.pop("db_host")
+    pg_url = f"postgresql+psycopg://postgres:123@{db_host}"
     indexing_method = args.pop("indexing_method")
 
     db = DB(pg_url)
+    db.ensure_pgvector()
     init_mappings(db.engine)
     if is_empty(db.SessionLocal):
         fill_db(pg_url)
     add_index(db, indexing_method)
-    asyncio.run(execute_benchmark(db.pg_url))
+
+    asyncio.run(execute_benchmark(pg_url))
+
     print('DONE')

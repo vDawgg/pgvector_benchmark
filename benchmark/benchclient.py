@@ -1,56 +1,58 @@
 import os.path
 import pickle
 import asyncio
+from collections import deque
 from time import time
 
 from datasets import load_from_disk
-from tqdm import tqdm
+from tqdm.asyncio import tqdm
 
-from db.db import DB
-from db.operations import query_db, add_items
+from db import db
+from db.db import AsyncDB
+from db.async_operations import query_db, add_items
 from models.models import Item
 
-# TODO: Set trace dir somewhere centrally
+
 current_dir = os.path.dirname(os.path.realpath(__file__))
 results_dir = os.path.join(current_dir, "results")
 trace_ds = load_from_disk(os.path.join(current_dir, 'trace/trace.hf'))
 
-async def save_items(idx: int, db: DB):
-    start = time()
-    items = []
-    for i in range(10):
-        items.append(
-            Item(
-                q_id=trace_ds[idx]['query_id'],
-                text=trace_ds[idx]['passages'][i],
-                vec=trace_ds[idx]['passage_embeddings'][i],
-            )
-        )
-    add_items(items, db.SessionLocal)
-    return start, time()
-
-async def send_request(idx: int, db: DB):
-    start = time()
-    answer = query_db(trace_ds[idx]['query_embeddings'], db.SessionLocal)
-    return start, time(), answer
-
-async def run_with_timeout(user_run_coro, type, timeout_sec=10):
+async def save_items(idx: int, db: AsyncDB):
     try:
-        res = await asyncio.wait_for(user_run_coro, timeout=timeout_sec)
-        return res, type
-    except asyncio.TimeoutError:
-        return None, type
+        start = time()
+        items = []
+        for i in range(10):
+            items.append(
+                Item(
+                    q_id=trace_ds[idx]['query_id'],
+                    text=trace_ds[idx]['passages'][i],
+                    vec=trace_ds[idx]['passage_embeddings'][i],
+                )
+            )
+        await add_items(items, db.SessionLocal)
+        return start, time()
+    except Exception:
+        return None, None
+
+async def send_request(idx: int, db: AsyncDB):
+    try:
+        start = time()
+        answer = await query_db(trace_ds[idx]['query_embeddings'], db.SessionLocal)
+        return start, time(), answer
+    except Exception:
+        return None, None, None
 
 class User:
-    def __init__(self, _db):
+    def __init__(self, _db: AsyncDB):
         self.db = _db
         self.cur_queries = 0
 
     async def run(self, idx, request_type, arrival, start):
+        await asyncio.sleep(max(0, arrival - (time() - start)))
         if request_type == 'query':
-            return await send_request(idx, self.db)
-        else:
-            return await send_request(idx, self.db)
+            return await send_request(idx, self.db), 'query'
+        elif request_type == 'insert':
+            return await save_items(idx, self.db), 'insert'
 
 async def execute_benchmark(pg_url: str):
     global db_url
@@ -60,18 +62,15 @@ async def execute_benchmark(pg_url: str):
 
     trace = pickle.load(open(os.path.join(current_dir, 'trace/trace.pkl'), 'rb'))
 
-    num_users = 200
-    users = [User(DB(db_url)) for _ in range(num_users)]
+    #users = deque([User(AsyncDB(db_url)) for _ in range(len(trace))])
+    user = User(AsyncDB(db_url))
 
     tasks = []
     start = time()
-    for type, idx, arrival in tqdm(trace):
-        await asyncio.sleep(max(0, arrival - (time() - start)))
-        user = users.pop(0)
-        tasks.append(asyncio.create_task(run_with_timeout(user.run(idx, type, arrival, start), type)))
-        users.append(user)
+    for type, idx, arrival in trace:
+        tasks.append(asyncio.create_task(user.run(idx, type, arrival, start)))
 
-    results = await asyncio.gather(*tasks)
+    results = await tqdm.gather(*tasks)
 
     item_log, query_log = [], []
     for r, t in results:

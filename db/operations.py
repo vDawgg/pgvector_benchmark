@@ -1,6 +1,4 @@
-from typing import Sequence
-
-from sqlalchemy import select, Index, Engine
+from sqlalchemy import Index
 from sqlalchemy.orm import sessionmaker, Session
 from tqdm import tqdm
 from pgvector.psycopg import register_vector
@@ -22,34 +20,10 @@ def bulk_insert(items: [Item], pg_url: str) -> None:
         conn.commit()
 
 
-def is_empty(SessionLocal: sessionmaker[Session]) -> int:
-    with SessionLocal() as session:
+def is_empty(session_local: sessionmaker[Session]) -> int:
+    with session_local() as session:
         return session.query(Item).count() == 0
 
-
-def add_item(item: Item, SessionLocal: sessionmaker[Session]) -> None:
-    with SessionLocal() as session:
-        session.add(item)
-        session.commit()
-
-
-def add_items(items: [Item], SessionLocal: sessionmaker[Session]) -> None:
-    with SessionLocal() as session:
-        session.add_all(items)
-        session.commit()
-
-def query_db(query: Item, SessionLocal: sessionmaker[Session], n=5) -> Sequence[Item]:
-    with SessionLocal() as session:
-        answer = (
-            session
-            .scalars(
-                select(Item)
-                .order_by(Item.vec.l2_distance(query))
-                .limit(n)
-            )
-        )
-        session.commit()
-        return answer.all()
 
 def add_hnsw(engine: Engine) -> None:
     Index(
@@ -59,6 +33,7 @@ def add_hnsw(engine: Engine) -> None:
         postgresql_with={'m': 10, 'ef_construction': 20}, # This can be chosen rather arbitrarily, might still be interesting to tune
         postgresql_ops={'vec': 'vector_l2_ops'}
     ).create(engine)
+
 
 def add_ivfflat(engine: Engine) -> None:
     Index(
