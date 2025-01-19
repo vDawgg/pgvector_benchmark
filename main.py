@@ -1,7 +1,7 @@
 import asyncio
 from argparse import ArgumentParser
 
-from db.db import DB
+from db.db import DB, AsyncDB
 from models.models import init_mappings
 from db.utils import fill_db, add_index
 from db.operations import is_empty
@@ -25,7 +25,9 @@ if __name__ == '__main__':
     if is_empty(db.SessionLocal):
         fill_db(pg_url)
     add_index(db, indexing_method)
+    db.teardown()
 
-    asyncio.run(execute_benchmark(pg_url))
+    async_db = AsyncDB(pg_url)
+    asyncio.run(execute_benchmark(async_db))
 
     print('DONE')

@@ -7,8 +7,18 @@ Base = declarative_base()
 class AsyncDB:
     def __init__(self, pg_url):
         self.pg_url = pg_url
-        self.engine: AsyncEngine = create_async_engine(self.pg_url, poolclass=NullPool)
-        self.SessionLocal: async_sessionmaker[AsyncSession] = async_sessionmaker(bind=self.engine)
+        self.engine: AsyncEngine = create_async_engine(
+            self.pg_url,
+            pool_size=90,
+            max_overflow=10,
+            pool_timeout=120,
+            pool_recycle=1800,
+            echo=False,
+        )
+        self.SessionLocal: async_sessionmaker[AsyncSession] = async_sessionmaker(
+            bind=self.engine,
+            expire_on_commit=False,
+        )
 
     def new_session(self) -> None:
         self.SessionLocal = async_sessionmaker(bind=self.engine)
@@ -26,3 +36,6 @@ class DB:
         with self.SessionLocal() as session:
             session.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
             session.commit()
+
+    def teardown(self) -> None:
+        self.engine.dispose()

@@ -1,7 +1,9 @@
+import operator
 import os.path
 import pickle
 import asyncio
 from collections import deque
+from itertools import accumulate
 from time import time
 
 from datasets import load_from_disk
@@ -17,6 +19,13 @@ current_dir = os.path.dirname(os.path.realpath(__file__))
 results_dir = os.path.join(current_dir, "results")
 trace_ds = load_from_disk(os.path.join(current_dir, 'trace/trace.hf'))
 
+def make_arrivals(num: int, mean: float):
+    mean = 1 / mean
+    return list(accumulate(
+        [mean for _ in range(num)],
+        operator.add
+    ))
+
 async def save_items(idx: int, db: AsyncDB):
     try:
         start = time()
@@ -31,7 +40,8 @@ async def save_items(idx: int, db: AsyncDB):
             )
         await add_items(items, db.SessionLocal)
         return start, time()
-    except Exception:
+    except Exception as e:
+        print(e)
         return None, None
 
 async def send_request(idx: int, db: AsyncDB):
@@ -54,19 +64,20 @@ class User:
         elif request_type == 'insert':
             return await save_items(idx, self.db), 'insert'
 
-async def execute_benchmark(pg_url: str):
-    global db_url
-    db_url = pg_url
-
+async def execute_benchmark(async_db):
     print("Starting benchmark...")
 
     trace = pickle.load(open(os.path.join(current_dir, 'trace/trace.pkl'), 'rb'))
 
     #users = deque([User(AsyncDB(db_url)) for _ in range(len(trace))])
-    user = User(AsyncDB(db_url))
+    user = User(async_db)
+    start = time()
 
     tasks = []
-    start = time()
+    """for i in range(0, 2000, 200):
+        start = time()
+        await asyncio.sleep(10)
+        arrivals = make_arrivals(200, int(i/100) if i != 0 else 2)"""
     for type, idx, arrival in trace:
         tasks.append(asyncio.create_task(user.run(idx, type, arrival, start)))
 
