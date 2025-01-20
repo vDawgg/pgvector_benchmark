@@ -9,7 +9,6 @@ from time import time
 from datasets import load_from_disk
 from tqdm.asyncio import tqdm
 
-from db import db
 from db.db import AsyncDB
 from db.async_operations import query_db, add_items
 from models.models import Item
@@ -74,11 +73,9 @@ async def execute_benchmark(async_db):
     start = time()
 
     tasks = []
-    """for i in range(0, 2000, 200):
-        start = time()
-        await asyncio.sleep(10)
-        arrivals = make_arrivals(200, int(i/100) if i != 0 else 2)"""
-    for type, idx, arrival in trace:
+    arrivals = make_arrivals(2000, 10)
+    for t, arrival in zip(trace[:2000], arrivals):
+        type, idx = t[0], t[1]
         tasks.append(asyncio.create_task(user.run(idx, type, arrival, start)))
 
     results = await tqdm.gather(*tasks)
