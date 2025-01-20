@@ -73,8 +73,8 @@ async def execute_benchmark(async_db):
     start = time()
 
     tasks = []
-    arrivals = make_arrivals(2000, 10)
-    for t, arrival in zip(trace[:2000], arrivals):
+    arrivals = make_arrivals(len(trace), 10)
+    for t, arrival in zip(trace, arrivals):
         type, idx = t[0], t[1]
         tasks.append(asyncio.create_task(user.run(idx, type, arrival, start)))
 
