@@ -1,18 +1,28 @@
+variable "run-number" {
+  type = string
+  nullable = false
+}
+
+variable "project-id" {
+  type = string
+  nullable = false
+}
+
 provider "google" {
-  project = "benchmark-446021" # TODO: Parameterize this!
+  project = var.project-id
   region  = "europe-west3"
   zone    = "europe-west3-c"
 }
 
 ### NETWORK
 resource "google_compute_network" "vpc_network" {
-  name                    = "demo-benchmark-network"
+  name                    = "benchmark-network-${var.run-number}"
   auto_create_subnetworks = true
 }
 
 ### FIREWALL
 resource "google_compute_firewall" "all" {
-  name = "allow-all"
+  name = "allow-all-${var.run-number}"
   allow {
     protocol = "tcp"
     ports    = ["0-65535"]
@@ -22,13 +32,13 @@ resource "google_compute_firewall" "all" {
 }
 
 resource "google_compute_router" "nat_router" {
-  name    = "benchmark-nat-router"
+  name    = "benchmark-nat-router-${var.run-number}"
   network = google_compute_network.vpc_network.id
   region  = "europe-west3"
 }
 
 resource "google_compute_router_nat" "nat_config" {
-  name                       = "benchmark-nat"
+  name                       = "benchmark-nat-${var.run-number}"
   router                     = google_compute_router.nat_router.name
   region                     = "europe-west3"
   nat_ip_allocate_option     = "AUTO_ONLY"
@@ -37,7 +47,7 @@ resource "google_compute_router_nat" "nat_config" {
 
 ### SUT INSTANCE
 resource "google_compute_instance" "SUT" {
-  name         = "pgvector-sut"
+  name         = "pgvector-sut-${var.run-number}"
   machine_type = "e2-highcpu-8"
 
   service_account {
@@ -61,7 +71,7 @@ resource "google_compute_instance" "SUT" {
 
 ### BENCHMARK CLIENT INSTANCE
 resource "google_compute_instance" "client" {
-  name         = "pgvector-client"
+  name         = "pgvector-client-${var.run-number}"
   machine_type = "e2-highcpu-4"
 
   service_account {

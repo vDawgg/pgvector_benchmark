@@ -62,7 +62,7 @@ class User:
         elif request_type == 'insert':
             return await save_items(idx, self.db), 'insert'
 
-async def execute_benchmark(async_db):
+async def execute_benchmark(async_db, indexing_method, run_number):
     print("Starting benchmark...")
 
     trace = pickle.load(open(os.path.join(current_dir, 'trace/trace.pkl'), 'rb'))
@@ -86,5 +86,5 @@ async def execute_benchmark(async_db):
         elif t == 'query':
             query_log.append(r)
 
-    pickle.dump(item_log, open(os.path.join(results_dir, 'item_log.pkl'), 'wb'))
-    pickle.dump(query_log, open(os.path.join(results_dir, 'query_log.pkl'), 'wb'))
+    pickle.dump(item_log, open(os.path.join(results_dir, f'item_log_{indexing_method}_{run_number}.pkl'), 'wb'))
+    pickle.dump(query_log, open(os.path.join(results_dir, f'query_log_{indexing_method}_{run_number}.pkl'), 'wb'))
