@@ -13,6 +13,7 @@ class AsyncDB:
             max_overflow=10,
             pool_timeout=120,
             pool_recycle=1800,
+            connect_args={"connect_timeout": 90},
             echo=False,
         )
         self.SessionLocal: async_sessionmaker[AsyncSession] = async_sessionmaker(

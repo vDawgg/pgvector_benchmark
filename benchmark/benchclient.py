@@ -2,7 +2,6 @@ import operator
 import os.path
 import pickle
 import asyncio
-from collections import deque
 from itertools import accumulate
 from time import time
 
@@ -40,7 +39,7 @@ async def save_items(idx: int, db: AsyncDB):
         await add_items(items, db.SessionLocal)
         return start, time()
     except Exception as e:
-        print(e)
+        #print(e)
         return None, None
 
 async def send_request(idx: int, db: AsyncDB):
