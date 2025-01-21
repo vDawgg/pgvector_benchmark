@@ -6,7 +6,7 @@ ZONE="europe-west3-c"
 PROJECT_ID=benchmark-446021
 
 # Deploy terraform configuration
-terraform apply -var"run-number=$(RUN)" -var"project-id=$(PROJECT_ID)" -auto-approve
+terraform apply -var="run-number=$RUN" -var="project-id=$PROJECT_ID" -auto-approve
 
 # Sleep for 10 seconds to make sure that the instances are reachable
 sleep 10
@@ -34,4 +34,4 @@ gcloud compute ssh $CLIENT_INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --tu
 gcloud compute scp --project $PROJECT_ID --tunnel-through-iap --zone $ZONE $CLIENT_INSTANCE_NAME:/pgvector_benchmark/benchmark/results/* ../benchmark/results
 
 # Destroy the resources
-terraform destroy -var"run-number=$(RUN)" -var"project-id=$(PROJECT_ID)" -auto-approve
+terraform destroy -var="run-number=$RUN" -var="project-id=$PROJECT_ID" -auto-approve
