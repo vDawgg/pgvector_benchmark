@@ -12,7 +12,7 @@ if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument("--db_host", help="Host of database (e.g. localhost)", default="localhost")
     parser.add_argument("--indexing_method", help="Indexing method", default="", choices=["ivfflat", "hnsw"])
-    parser.add_argument("--request-per-second", help="Average number of requests per second", default=5)
+    parser.add_argument("--requests_per_second", help="Average number of requests per second", default=5)
     parser.add_argument("--run_number", help="Run number", default=0, type=int)
     args = parser.parse_args()
     args = vars(args)
@@ -20,7 +20,7 @@ if __name__ == '__main__':
     db_host = args.pop("db_host")
     pg_url = f"postgresql+psycopg://postgres:123@{db_host}"
     indexing_method = args.pop("indexing_method")
-    request_per_second = args.pop("request_per_second")
+    request_per_second = args.pop("requests_per_second")
     run_number = args.pop("run_number")
 
     db = DB(pg_url)
