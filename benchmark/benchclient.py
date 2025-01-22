@@ -62,17 +62,16 @@ class User:
         elif request_type == 'insert':
             return await save_items(idx, self.db), 'insert'
 
-async def execute_benchmark(async_db, indexing_method, run_number):
+async def execute_benchmark(async_db, indexing_method, run_number, requests_per_second):
     print("Starting benchmark...")
 
     trace = pickle.load(open(os.path.join(current_dir, 'trace/trace.pkl'), 'rb'))
 
-    #users = deque([User(AsyncDB(db_url)) for _ in range(len(trace))])
     user = User(async_db)
     start = time()
 
     tasks = []
-    arrivals = make_arrivals(len(trace), 10)
+    arrivals = make_arrivals(len(trace), requests_per_second)
     for t, arrival in zip(trace, arrivals):
         type, idx = t[0], t[1]
         tasks.append(asyncio.create_task(user.run(idx, type, arrival, start)))
@@ -86,5 +85,5 @@ async def execute_benchmark(async_db, indexing_method, run_number):
         elif t == 'query':
             query_log.append(r)
 
-    pickle.dump(item_log, open(os.path.join(results_dir, f'item_log_{indexing_method}_{run_number}.pkl'), 'wb'))
-    pickle.dump(query_log, open(os.path.join(results_dir, f'query_log_{indexing_method}_{run_number}.pkl'), 'wb'))
+    pickle.dump(item_log, open(os.path.join(results_dir, f'item_log_{indexing_method}_req{requests_per_second}_{run_number}.pkl'), 'wb'))
+    pickle.dump(query_log, open(os.path.join(results_dir, f'query_log_{indexing_method}_req{requests_per_second}_{run_number}.pkl'), 'wb'))

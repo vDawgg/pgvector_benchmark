@@ -1,7 +1,8 @@
 RUN=$1
-INDEXING_METHOD=$2
-CLIENT_INSTANCE_NAME="pgvector-client"
-SUT_INSTANCE_NAME="pgvector-sut"
+REQUESTS_PER_SECOND=$2
+INDEXING_METHOD=$3
+CLIENT_INSTANCE_NAME="pgvector-client-$RUN"
+SUT_INSTANCE_NAME="pgvector-sut-$RUN"
 ZONE="europe-west3-c"
 PROJECT_ID=benchmark-446021
 
@@ -28,7 +29,7 @@ done
 SUT_IP="$(gcloud compute instances describe $SUT_INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --format='get(networkInterfaces[0].networkIP)')"
 
 # Set up and run the project on the client instance
-gcloud compute ssh $CLIENT_INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --tunnel-through-iap --command "sudo sh /pgvector_benchmark/deployment/run_bench_client.sh $SUT_IP $RUN $INDEXING_METHOD"
+gcloud compute ssh $CLIENT_INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --tunnel-through-iap --command "sudo sh /pgvector_benchmark/deployment/run_bench_client.sh $SUT_IP $RUN $REQUESTS_PER_SECOND $INDEXING_METHOD"
 
 # Copy the results from the client instance
 gcloud compute scp --project $PROJECT_ID --tunnel-through-iap --zone $ZONE $CLIENT_INSTANCE_NAME:/pgvector_benchmark/benchmark/results/* ../benchmark/results
