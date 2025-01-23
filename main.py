@@ -2,7 +2,7 @@ import asyncio
 from argparse import ArgumentParser
 
 from db.db import DB, AsyncDB
-from models.models import init_mappings
+from db.models import init_mappings
 from db.utils import fill_db, add_index
 from db.operations import is_empty
 from benchmark.benchclient import execute_benchmark

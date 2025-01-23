@@ -4,7 +4,7 @@ from tqdm import tqdm
 from pgvector.psycopg import register_vector
 import psycopg
 
-from models.models import *
+from db.models import *
 
 
 # Bulk insert using psycopg for faster setup

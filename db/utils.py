@@ -1,6 +1,6 @@
 from tqdm import tqdm
 
-from models.models import Item
+from db.models import Item
 from db.db import DB
 from db.operations import add_hnsw, add_ivfflat, bulk_insert
 from datasets import load_from_disk

@@ -3,7 +3,7 @@ from typing import Sequence
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from models.models import Item
+from db.models import Item
 
 
 async def add_items(items: [Item], session_local: async_sessionmaker[AsyncSession]) -> None:
