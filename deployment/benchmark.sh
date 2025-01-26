@@ -4,7 +4,10 @@ INDEXING_METHOD=$3
 CLIENT_INSTANCE_NAME="pgvector-client-$RUN"
 SUT_INSTANCE_NAME="pgvector-sut-$RUN"
 ZONE="europe-west3-c"
-PROJECT_ID=benchmark-446021
+PROJECT_ID=benchmark-449022
+
+terraform workspace new run"$RUN"
+terraform workspace select run"$RUN"
 
 # Deploy terraform configuration
 terraform apply -var="run-number=$RUN" -var="project-id=$PROJECT_ID" -auto-approve
@@ -35,4 +38,5 @@ gcloud compute ssh $CLIENT_INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --tu
 gcloud compute scp --project $PROJECT_ID --tunnel-through-iap --zone $ZONE $CLIENT_INSTANCE_NAME:/pgvector_benchmark/benchmark/results/* ../benchmark/results
 
 # Destroy the resources
+terraform workspace select run"$RUN"
 terraform destroy -var="run-number=$RUN" -var="project-id=$PROJECT_ID" -auto-approve

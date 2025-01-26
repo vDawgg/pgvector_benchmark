@@ -25,6 +25,7 @@ def make_arrivals(num: int, mean: float):
         operator.add
     ))
 
+
 async def save_items(idx: int, db: AsyncDB):
     try:
         start = time()
@@ -77,7 +78,7 @@ async def execute_benchmark(async_db, indexing_method, run_number, requests_per_
         type, idx = t[0], t[1]
         tasks.append(asyncio.create_task(user.run(idx, type, arrival, start)))
 
-    results = await tqdm.gather(*tasks)
+    results = await tqdm.gather(*tasks, mininterval=10)
 
     item_log, query_log = [], []
     for r, t in results:
