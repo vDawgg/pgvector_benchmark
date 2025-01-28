@@ -1,3 +1,4 @@
+tmux new -s benchmark
 cd /
 gsutil cp gs://bench-data-bucket/trace.tar.gz ./pgvector_benchmark/benchmark
 tar -xvf ./pgvector_benchmark/benchmark/trace.tar.gz -C ./pgvector_benchmark/benchmark

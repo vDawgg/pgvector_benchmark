@@ -32,7 +32,20 @@ done
 SUT_IP="$(gcloud compute instances describe $SUT_INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --format='get(networkInterfaces[0].networkIP)')"
 
 # Set up and run the project on the client instance
-gcloud compute ssh $CLIENT_INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --tunnel-through-iap --ssh-flag="-o ServerAliveInterval=30" --ssh-flag="-o ServerAliveCountMax=10" --command "sudo sh /pgvector_benchmark/deployment/run_bench_client.sh $SUT_IP $RUN $REQUESTS_PER_SECOND $INDEXING_METHOD"
+gcloud compute ssh $CLIENT_INSTANCE_NAME --project $PROJECT_ID --zone $ZONE --tunnel-through-iap --ssh-flag="-o ServerAliveInterval=60" --ssh-flag="-o ServerAliveCountMax=30" --troubleshoot --command "sudo sh /pgvector_benchmark/deployment/run_bench_client.sh $SUT_IP $RUN $REQUESTS_PER_SECOND $INDEXING_METHOD"
+
+# In case of ssh connection failure, check whether the benchmark run has completed
+while true; do
+  if gcloud compute ssh "$CLIENT_INSTANCE_NAME" \
+      --project="$PROJECT_ID" \
+      --zone="$ZONE" \
+      --tunnel-through-iap \
+      --command="compgen -G /pgvector_benchmark/benchmark/results/*.pkl" >/dev/null; then
+    break
+  else
+    sleep 30
+  fi
+done
 
 # Copy the results from the client instance
 gcloud compute scp --project $PROJECT_ID --tunnel-through-iap --zone $ZONE $CLIENT_INSTANCE_NAME:/pgvector_benchmark/benchmark/results/* ../benchmark/results
