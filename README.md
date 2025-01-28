@@ -81,3 +81,19 @@ Example run → Run Nr. 1, hnsw indexing method, 10 requests per second:
 ```shell
 sh benchmark.sh 1 10 hnsw
 ```
+
+# Evaluation
+
+There are two evaluation scripts, for this project, which can be found under /eval.
+
+The visualizations (throughput and latency) can be attained by running:
+
+```shell
+python vis.py
+```
+
+The query accuracy metrics can be attained by running:
+
+```shell
+python query_accuracy.py
+```
