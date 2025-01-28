@@ -1,4 +1,4 @@
-import asyncio
+import uvloop
 from argparse import ArgumentParser
 
 from db.db import DB, AsyncDB
@@ -32,6 +32,6 @@ if __name__ == '__main__':
     db.teardown()
 
     async_db = AsyncDB(pg_url)
-    asyncio.run(execute_benchmark(async_db, indexing_method, run_number, int(request_per_second)))
+    uvloop.run(execute_benchmark(async_db, indexing_method, run_number, int(request_per_second)))
 
     print('DONE')
