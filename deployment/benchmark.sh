@@ -43,7 +43,7 @@ while true; do
       --command="compgen -G /pgvector_benchmark/benchmark/results/*.pkl" >/dev/null; then
     break
   else
-    sleep 30
+    sleep 600
   fi
 done
 
