@@ -1,5 +1,6 @@
 import os
 
+import matplotlib.pyplot as plt
 import pandas as pd
 from datasets import load_from_disk
 
@@ -10,9 +11,12 @@ def recall_at_r(query_log, ds):
 
     recall_list = []
     for q_id, item in zip(q_ids, items):
-        relevant_items = sum([1 for i in item if i == q_id])
-        recall = relevant_items / len(items)
-        recall_list.append(recall)
+        if type(item) is not float:
+            relevant_items = sum([1 for i in item if i == q_id])
+            recall = relevant_items / len(items)
+            recall_list.append(recall)
+        else:
+            continue
 
     return recall_list, sum(recall_list) / len(recall_list)
 
@@ -28,6 +32,8 @@ def load_data(run, indexing_method, requests_per_sec):
 
 
 if __name__ == '__main__':
-    trace_ds, query_log = load_data(1000, '', 5)
+    trace_ds, query_log = load_data(1, 'hnsw', 10)
     recall_list, avg_recall = recall_at_r(query_log, trace_ds)
+    plt.plot(recall_list)
+    plt.show()
     print(avg_recall)

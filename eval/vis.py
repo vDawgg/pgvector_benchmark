@@ -1,5 +1,6 @@
-import pickle
+import math
 import os
+from collections import defaultdict
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,7 +11,7 @@ def get_latencies_and_errors(start, end, win_size):
     latencies = []
     errors = []
     for s, e in zip(start, end):
-        if s is np.nan:
+        if math.isnan(s):
             latencies.append(np.nan)
             errors.append(1)
         else:
@@ -42,16 +43,20 @@ def plot_latency(latencies, err_rate, request_type):
     plt.tight_layout()
     plt.show()
 
-def get_binned_throughput_and_errors(end, bin_size):
+def get_binned_throughput_and_errors(end, bin_size, rate):
+    mean = 1 / rate
+    last_time = 0
+
     end_times = []
     errors = []
     for e in end:
-         if e is np.nan:
-             errors.append(1)
+         if math.isnan(e):
+             errors.append(last_time + mean)
              end_times.append(np.nan)
          else:
-             errors.append(0)
+             errors.append(np.nan)
              end_times.append(e)
+             last_time = e
 
     end_times, errors = np.array(end_times), np.array(errors)
     start_time, end_time = np.nanmin(end_times), np.nanmax(end_times)
@@ -65,21 +70,66 @@ def get_binned_throughput_and_errors(end, bin_size):
 
     return bin_centers, throughput, errors
 
-def plot_throughput(bin_centers, throughput, errors, request_type):
+def plot_throughput(request_type, end, bin_size, rate):
+    bin_centers, throughput, errors = get_binned_throughput_and_errors(end, bin_size, rate)
+
     fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, sharex=True, figsize=(8, 6))
     ax1.plot(bin_centers, throughput, label='Throughput', color='C0')
-    ax1.set_ylabel('Throughput (queries/sec)')
-    ax1.set_xlabel('Time (sec)')
+    ax1.set_ylabel('Throughput (queries/min)')
+    ax1.set_xlabel('Time (min)')
     ax1.set_title(f'Throughput and Error Rate Over Time (binned) [{request_type}]')
     ax1.legend(loc='upper left')
 
     ax2.plot(bin_centers, errors, label='Error Rate', color='red')
-    ax2.set_ylabel('Error Rate (Errors/sec)')
+    ax2.set_ylabel('Error Rate (Errors/min)')
+    ax2.set_xlabel('Time (min)')
+    ax2.legend(loc='upper left')
+
+    plt.tight_layout()
+    plt.show()
+
+def get_current_running_requests(df):
+    events = defaultdict(int)
+
+    for start, end in zip(df["start_time"], df["end_time"]):
+        if not math.isnan(start) and not math.isnan(end):
+            s = int(start)
+            e = int(end)
+            events[s] += 1
+            events[e] -= 1
+
+    all_times = sorted(events.keys())
+    concurrency = 0
+    times = []
+    counts = []
+
+    for t in all_times:
+        concurrency += events[t]
+        times.append(t)
+        counts.append(concurrency)
+
+    return times, counts
+
+def plot_current_running_requests(insert_df, query_df):
+    insert_range, insert_rr = get_current_running_requests(insert_df)
+    query_range, query_rr = get_current_running_requests(query_df)
+
+    fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, sharex=True, figsize=(8, 6))
+
+    ax1.plot(insert_range, insert_rr, label='CREATE', color='C0')
+    ax1.set_ylabel('Num Requests')
+    ax1.set_xlabel('Time (sec)')
+    ax1.set_title("Number of in-flight requests over time")
+    ax1.legend(loc='upper left')
+
+    ax2.plot(query_range, query_rr, label='READ', color='red')
+    ax2.set_ylabel('Num Requests')
     ax2.set_xlabel('Time (sec)')
     ax2.legend(loc='upper left')
 
     plt.tight_layout()
     plt.show()
+
 
 if __name__ == '__main__':
     indexing_method = "hnsw"
@@ -108,12 +158,8 @@ if __name__ == '__main__':
     )
 
     # TODO: Find out whether this bin size is sensible for the application
-    plot_throughput(
-        *get_binned_throughput_and_errors(insert_end, 100),
-        'CREATE'
-    )
+    plot_throughput('CREATE', insert_end, 60, requests_per_sec)
 
-    plot_throughput(
-        *get_binned_throughput_and_errors(query_end, 100),
-        'READ'
-    )
+    plot_throughput('READ', query_end,60, requests_per_sec)
+
+    plot_current_running_requests(insert_df, query_df)
