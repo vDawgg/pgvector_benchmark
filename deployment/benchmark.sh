@@ -40,7 +40,7 @@ while true; do
       --project="$PROJECT_ID" \
       --zone="$ZONE" \
       --tunnel-through-iap \
-      --command="compgen -G /pgvector_benchmark/benchmark/results/*.pkl" >/dev/null; then
+      --command="compgen -G /pgvector_benchmark/benchmark/results/*.pkl" 2>/dev/null; then
     break
   else
     sleep 600

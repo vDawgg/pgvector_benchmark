@@ -41,6 +41,7 @@ async def save_items(idx: int, db: AsyncDB):
         await add_items(items, db.SessionLocal)
         return start, time()
     except Exception as e:
+        print(e)
         return np.nan, np.nan
 
 async def send_request(idx: int, db: AsyncDB):
@@ -49,7 +50,8 @@ async def send_request(idx: int, db: AsyncDB):
         answer = await query_db(trace_ds[idx]['query_embeddings'], db.SessionLocal)
         vec_array = item_to_qid_array(answer)
         return start, time(), vec_array, trace_ds[idx]['query_id']
-    except Exception:
+    except Exception as e:
+        print(e)
         return np.nan, np.nan, np.nan, np.nan
 
 class User:
@@ -58,6 +60,8 @@ class User:
         self.cur_queries = 0
 
     async def run(self, idx, request_type, arrival, start):
+        if max(0, arrival - (time() - start)) == 0:
+            print("Throttling")
         await asyncio.sleep(max(0, arrival - (time() - start)))
         if request_type == 'query':
             return await send_request(idx, self.db), 'query'
