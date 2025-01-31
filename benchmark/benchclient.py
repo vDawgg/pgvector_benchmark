@@ -74,10 +74,11 @@ async def execute_benchmark(async_db, indexing_method, run_number, requests_per_
     trace = pickle.load(open(os.path.join(current_dir, 'trace/trace.pkl'), 'rb'))
 
     user = User(async_db)
-    start = time()
 
     tasks = []
     arrivals = make_arrivals(len(trace), requests_per_second)
+
+    start = time()
     for t, arrival in zip(trace, arrivals):
         type, idx = t[0], t[1]
         tasks.append(asyncio.create_task(user.run(idx, type, arrival, start)))
