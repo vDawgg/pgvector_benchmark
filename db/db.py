@@ -9,12 +9,7 @@ class AsyncDB:
         self.pg_url = pg_url
         self.engine: AsyncEngine = create_async_engine(
             self.pg_url,
-            pool_size=90,
-            max_overflow=10,
-            pool_timeout=120,
-            pool_recycle=1800,
-            connect_args={"connect_timeout": 90},
-            echo=False,
+            poolclass=NullPool,
         )
         self.SessionLocal: async_sessionmaker[AsyncSession] = async_sessionmaker(
             bind=self.engine,
