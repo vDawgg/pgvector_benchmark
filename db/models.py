@@ -11,7 +11,6 @@ class Item(Base):
     __tablename__ = "vecdatatable"
     id = Column(Integer, primary_key=True, autoincrement=True)
     q_id = Column(Integer, nullable=False)
-    text = Column(String, nullable=False)
     vec = mapped_column(Vector(dim), nullable=False)
 
 

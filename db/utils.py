@@ -14,7 +14,6 @@ def make_init_set():
             items.append(
                 Item(
                     q_id=item["query_id"],
-                    text=item["passages"][i],
                     vec=item["passage_embeddings"][i]
                 )
             )

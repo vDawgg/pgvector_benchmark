@@ -13,10 +13,10 @@ def bulk_insert(items: [Item], pg_url: str) -> None:
     with psycopg.connect(f'postgresql://{pg_url.split("//")[1]}:5432/postgres') as conn:
         register_vector(conn)
         with conn.cursor() as cur:
-            with cur.copy("COPY vecdatatable (q_id, text, vec) FROM STDIN WITH (FORMAT BINARY)") as copy:
-                copy.set_types(['integer', 'text', 'vector'])
+            with cur.copy("COPY vecdatatable (q_id, vec) FROM STDIN WITH (FORMAT BINARY)") as copy:
+                copy.set_types(['integer', 'vector'])
                 for item in tqdm(items):
-                    copy.write_row([item.q_id, item.text, item.vec])
+                    copy.write_row([item.q_id, item.vec])
         conn.commit()
 
 
