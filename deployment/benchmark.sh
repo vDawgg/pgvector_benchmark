@@ -4,7 +4,7 @@ INDEXING_METHOD=$3
 CLIENT_INSTANCE_NAME="pgvector-client-$RUN"
 SUT_INSTANCE_NAME="pgvector-sut-$RUN"
 ZONE="europe-west3-c"
-PROJECT_ID=benchmark-449022
+PROJECT_ID=praxis-life-350612
 
 terraform workspace new run"$RUN"
 terraform workspace select run"$RUN"
