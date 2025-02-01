@@ -51,14 +51,13 @@ async def send_request(idx: int, db: AsyncDB):
     except Exception as e:
         return np.nan, np.nan, np.nan, np.nan, e
 
+# TODO: Rename this to something more fitting → The concept of one user does not make sense
 class User:
     def __init__(self, _db: AsyncDB):
         self.db = _db
         self.cur_queries = 0
 
     async def run(self, idx, request_type, arrival, start):
-        if max(0, arrival - (time() - start)) == 0:
-            print("Throttling")
         await asyncio.sleep(max(0, arrival - (time() - start)))
         if request_type == 'query':
             return await send_request(idx, self.db), 'query'

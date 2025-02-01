@@ -1,28 +1,43 @@
-variable "run-number" {
+variable "run_number" {
   type = string
   nullable = false
 }
 
-variable "project-id" {
+variable "project_id" {
+  type = string
+  nullable = false
+}
+
+variable "zone" {
+  type = string
+  nullable = false
+}
+
+variable "region" {
+  type = string
+  nullable = false
+}
+
+variable "indexing_method" {
   type = string
   nullable = false
 }
 
 provider "google" {
-  project = var.project-id
-  region  = "europe-west3"
-  zone    = "europe-west3-c"
+  project = var.project_id
+  region  = var.region
+  zone    = var.zone
 }
 
 ### NETWORK
 resource "google_compute_network" "vpc_network" {
-  name                    = "benchmark-network-${var.run-number}"
+  name                    = "benchmark-network-${var.indexing_method}-${var.run_number}"
   auto_create_subnetworks = true
 }
 
 ### FIREWALL
 resource "google_compute_firewall" "all" {
-  name = "allow-all-${var.run-number}"
+  name = "allow-all-${var.indexing_method}-${var.run_number}"
   allow {
     protocol = "tcp"
     ports    = ["0-65535"]
@@ -32,22 +47,22 @@ resource "google_compute_firewall" "all" {
 }
 
 resource "google_compute_router" "nat_router" {
-  name    = "benchmark-nat-router-${var.run-number}"
+  name    = "benchmark-nat-router-${var.indexing_method}-${var.run_number}"
   network = google_compute_network.vpc_network.id
-  region  = "europe-west3"
+  region  = var.region
 }
 
 resource "google_compute_router_nat" "nat_config" {
-  name                       = "benchmark-nat-${var.run-number}"
+  name                       = "benchmark-nat-${var.indexing_method}-${var.run_number}"
   router                     = google_compute_router.nat_router.name
-  region                     = "europe-west3"
+  region                     = var.region
   nat_ip_allocate_option     = "AUTO_ONLY"
   source_subnetwork_ip_ranges_to_nat = "ALL_SUBNETWORKS_ALL_IP_RANGES"
 }
 
 ### SUT INSTANCE
 resource "google_compute_instance" "SUT" {
-  name         = "pgvector-sut-${var.run-number}"
+  name         = "pgvector-sut-${var.indexing_method}-${var.run_number}"
   machine_type = "e2-highcpu-8"
 
   service_account {
@@ -71,7 +86,7 @@ resource "google_compute_instance" "SUT" {
 
 ### BENCHMARK CLIENT INSTANCE
 resource "google_compute_instance" "client" {
-  name         = "pgvector-client-${var.run-number}"
+  name         = "pgvector-client-${var.indexing_method}-${var.run_number}"
   machine_type = "e2-standard-4"
 
   service_account {

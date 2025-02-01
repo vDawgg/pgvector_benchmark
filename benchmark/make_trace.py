@@ -18,8 +18,6 @@ def make_trace():
 
     trace = [x for x in itertools.chain.from_iterable(itertools.zip_longest(insert_idx, query_idx)) if x]
 
-    print(len(trace))
-
     with open('./trace/trace.pkl', 'wb') as trace_f:
         pickle.dump(trace, trace_f)
 
