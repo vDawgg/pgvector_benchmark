@@ -40,7 +40,6 @@ async def save_items(idx: int, db: AsyncDB):
         await add_items(items, db.SessionLocal)
         return start, time(), ""
     except Exception as e:
-        print(e)
         return np.nan, np.nan, e
 
 async def send_request(idx: int, db: AsyncDB):
@@ -50,7 +49,6 @@ async def send_request(idx: int, db: AsyncDB):
         vec_array = item_to_qid_array(answer)
         return start, time(), vec_array, trace_ds[idx]['query_id'], ""
     except Exception as e:
-        print(e)
         return np.nan, np.nan, np.nan, np.nan, e
 
 class User:
