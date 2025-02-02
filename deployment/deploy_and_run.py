@@ -40,7 +40,7 @@ if __name__ == "__main__":
     print("Deploying infrastructure")
     subprocess.run(f'terraform apply -var="indexing_method={indexing_method}" -var="run_number={run_number}" -var="project_id={PROJECT_ID}" -var="region={REGION}" -var="zone={ZONE}" -auto-approve', shell=True)
 
-    #sleep(10)
+    sleep(10)
     
     while True:
         res = subprocess.run(
@@ -54,11 +54,12 @@ if __name__ == "__main__":
 
     print("Deployment finished")
 
-    sut_ip = subprocess.run(f'gcloud compute instances describe {sut_instance_name} --project={PROJECT_ID} --zone={ZONE} --format="get(networkInterfaces[0].networkIP)"', shell=True)
+    res = subprocess.run(f'gcloud compute instances describe {sut_instance_name} --project={PROJECT_ID} --zone={ZONE} --format="get(networkInterfaces[0].networkIP)"', capture_output=True, shell=True)
+    sut_ip = res.stdout.decode("utf-8").strip()
 
     print("Starting benchmark run")
     subprocess.run(
-        f"gcloud compute ssh {client_instance_name} --project={PROJECT_ID} --zone={ZONE} --tunnel-through-iap --ssh-flag='-t' --command='sudo sh /pgvector_benchmark/deployment/run_bench_client.sh $SUT_IP {run_number} {requests_per_second} {indexing_method}'",
+        f"gcloud compute ssh {client_instance_name} --project={PROJECT_ID} --zone={ZONE} --tunnel-through-iap --ssh-flag='-t' --command='sudo sh /pgvector_benchmark/deployment/run_bench_client.sh {sut_ip} {run_number} {requests_per_second} {indexing_method}'",
         shell=True
     )
 
@@ -74,7 +75,7 @@ if __name__ == "__main__":
 
     print("Benchmark finished, copying results")
     subprocess.run(
-        f"gcloud compute scp --project={PROJECT_ID} --zone={ZONE} --tunnel-through-iap {client_instance_name}:/pgvector_benchmark/benchmark/results/* ..benchmark/results",
+        f"gcloud compute scp --project={PROJECT_ID} --zone={ZONE} --tunnel-through-iap {client_instance_name}:/pgvector_benchmark/benchmark/results/* ../benchmark/results",
         shell=True
     )
 
