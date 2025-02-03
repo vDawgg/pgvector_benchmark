@@ -11,7 +11,7 @@ from benchmark.benchclient import execute_benchmark
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument("--db_host", help="Host of database (e.g. localhost)", default="localhost")
-    parser.add_argument("--indexing_method", help="Indexing method", default="", choices=["ivfflat", "hnsw"])
+    parser.add_argument("--indexing_method", help="Indexing method", default="none", choices=["ivfflat", "hnsw", "none"])
     parser.add_argument("--requests_per_second", help="Average number of requests per second", default=5)
     parser.add_argument("--run_number", help="Run number", default=0, type=int)
     args = parser.parse_args()
