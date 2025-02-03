@@ -6,7 +6,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
+results_dir = '../benchmark/results'
 
+# TODO: Make function to print all exception types!
+
+# TODO: Bin this properly!
 def get_latencies_and_errors(start, end, win_size):
     latencies = []
     errors = []
@@ -37,10 +41,44 @@ def plot_latency(latencies, err_rate, request_type):
     # Plot error rate in the second (bottom) subplot
     ax2.plot(range, err_rate, label='Error Rate', color='red')
     ax2.set_ylabel('Error Rate')
-    ax2.set_xlabel('Request Index (or Time)')
+    ax2.set_xlabel('Time (min)')
     ax2.legend(loc='upper left')
 
     plt.tight_layout()
+    plt.show()
+
+def get_latencies(start, end):
+    latencies = []
+    for s, e in zip(start, end):
+        if not math.isnan(s):
+            latencies.append(e - s)
+    return latencies
+
+def boxplot_latency(l_type: str, requests_per_sec: str):
+    logs_dir = os.path.join(results_dir, 'logs')
+
+    hnsw = []
+    ivfflat = []
+    none = []
+    for f in os.listdir(logs_dir):
+        print(f)
+        df = pd.read_pickle(os.path.join(logs_dir, f))
+        if l_type in f and "hnsw" in f and requests_per_sec in f:
+            hnsw.extend(get_latencies(df["start_time"], df["end_time"]))
+        elif l_type in f and "ivfflat" in f and requests_per_sec in f:
+            ivfflat.extend(get_latencies(df["start_time"], df["end_time"]))
+        elif l_type in f and "none" in f and requests_per_sec in f:
+            none.extend(get_latencies(df["start_time"], df["end_time"]))
+
+    print(len(hnsw))
+
+    fig, ax = plt.subplots(figsize=(10, 7))
+    ax.set_ylabel('Latency (seconds)')
+    ax.boxplot([none, hnsw, ivfflat], labels=["No indexing", "hnsw", "ivfflat"])
+    if l_type == "item":
+        plt.title("Latencies for CREATE")
+    else:
+        plt.title("Latencies for READ")
     plt.show()
 
 def get_binned_throughput_and_errors(end, bin_size, rate):
@@ -110,7 +148,7 @@ def get_current_running_requests(df):
 
     return times, counts
 
-def plot_current_running_requests(insert_df, query_df):
+def plot_current_running_requests(insert_df, query_df, indexing_method, requests_per_sec):
     insert_range, insert_rr = get_current_running_requests(insert_df)
     query_range, query_rr = get_current_running_requests(query_df)
 
@@ -119,7 +157,10 @@ def plot_current_running_requests(insert_df, query_df):
     ax1.plot(insert_range, insert_rr, label='CREATE', color='C0')
     ax1.set_ylabel('Num Requests')
     ax1.set_xlabel('Time (sec)')
-    ax1.set_title("Number of in-flight requests over time")
+    if indexing_method == "":
+        ax1.set_title(f"Number of in-flight requests over time (No indexing, {requests_per_sec}req/s)")
+    else:
+        ax1.set_title(f"Number of in-flight requests over time ({indexing_method}, {requests_per_sec}req/s)")
     ax1.legend(loc='upper left')
 
     ax2.plot(query_range, query_rr, label='READ', color='red')
@@ -130,13 +171,42 @@ def plot_current_running_requests(insert_df, query_df):
     plt.tight_layout()
     plt.show()
 
+def get_cpu_utilization(indexing_method, requests_per_sec, run):
+    utilization_dir = os.path.join(results_dir, "utilization", f"req{requests_per_sec}_{indexing_method}_{run}")
+    sut_utilization = open(os.path.join(utilization_dir, "cpu_sut.csv"), "r")
+    client_utilization = open(os.path.join(utilization_dir, "cpu_client.csv"), "r")
+
+    cpu_sut = [float(line.split(",")[1].strip()) for line in sut_utilization.readlines()[5:]]
+    cpu_client = [float(line.split(",")[1].strip()) for line in client_utilization.readlines()[5:]]
+
+    return cpu_sut, cpu_client
+
+def plot_cpu_utilization(indexing_method, requests_per_sec, run):
+    cpu_sut, cpu_client = get_cpu_utilization(indexing_method, requests_per_sec, run)
+
+    fig, (ax1, ax2) = plt.subplots(nrows=2, ncols=1, sharex=True, sharey=True, figsize=(8, 6))
+
+    ax1.plot(cpu_sut, label='SUT', color='C0')
+    ax1.set_ylabel('CPU Utilization')
+    ax1.set_xlabel('Time')
+    if indexing_method == "":
+        ax1.set_title(f"CPU Utilization for SUT and CLient (No indexing, {requests_per_sec}req/s)")
+    else:
+        ax1.set_title(f"CPU Utilization for SUT and CLient ({indexing_method}, {requests_per_sec}req/s)")
+    ax1.legend(loc='upper left')
+
+    ax2.plot(cpu_client, label='Client', color='red')
+    ax2.set_ylabel('CPU Utilization')
+    ax2.set_xlabel('Time')
+    ax2.legend(loc='upper left')
+
+    plt.tight_layout()
+    plt.show()
 
 if __name__ == '__main__':
-    indexing_method = "hnsw"
-    requests_per_sec = 10
+    indexing_method = ""
+    requests_per_sec = 15
     run = 1
-
-    results_dir = '../benchmark/results'
 
     insert_df = pd.read_pickle(os.path.join(results_dir, f'item_log_{indexing_method}_req{requests_per_sec}_{run}.pkl'))
     query_df = pd.read_pickle(os.path.join(results_dir, f'query_log_{indexing_method}_req{requests_per_sec}_{run}.pkl'))
@@ -148,12 +218,12 @@ if __name__ == '__main__':
     query_end = query_df['end_time']
 
     plot_latency(
-        *get_latencies_and_errors(insert_start, insert_end, 100),
+        *get_latencies_and_errors(insert_start, insert_end, 1),
         'CREATE'
     )
 
     plot_latency(
-        *get_latencies_and_errors(query_start, query_end, 100),
+        *get_latencies_and_errors(query_start, query_end, 1),
         'READ'
     )
 
@@ -162,4 +232,9 @@ if __name__ == '__main__':
 
     plot_throughput('READ', query_end,60, requests_per_sec)
 
-    plot_current_running_requests(insert_df, query_df)
+    plot_current_running_requests(insert_df, query_df, indexing_method, requests_per_sec)
+
+    plot_cpu_utilization(indexing_method, requests_per_sec, run)
+
+    boxplot_latency("item", str(requests_per_sec))
+    boxplot_latency("query", str(requests_per_sec))
