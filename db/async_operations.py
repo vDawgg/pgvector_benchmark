@@ -11,6 +11,7 @@ async def add_items(items: [Item], session_local: async_sessionmaker[AsyncSessio
         session.add_all(items)
         await session.commit()
 
+
 async def query_db(query: Item, session_local: async_sessionmaker[AsyncSession], n=5) -> Sequence[Item]:
     async with session_local() as session:
         answer = (

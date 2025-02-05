@@ -4,6 +4,7 @@ from time import sleep
 
 from env import PROJECT_ID, REGION, ZONE
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(

@@ -24,7 +24,6 @@ class AsyncDB:
 
 class DB:
     def __init__(self, pg_url):
-        # TODO: Think about setting the connection timeout as a constant somewhere
         self.engine: Engine = create_engine(pg_url, poolclass=NullPool, connect_args={'connect_timeout': 10})
         self.SessionLocal: sessionmaker[Session] = sessionmaker(bind=self.engine)
 

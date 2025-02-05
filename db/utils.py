@@ -6,10 +6,10 @@ from db.operations import add_hnsw, add_ivfflat, bulk_insert
 from datasets import load_from_disk
 
 def make_init_set():
-    ds = load_from_disk('./benchmark/trace/trace.hf')  # TODO: Parameterize this properly
+    ds = load_from_disk('./benchmark/trace/trace.hf')
 
     items = []
-    for item in tqdm(ds.select(range(10000))): # TODO: Parameterize this ideally
+    for item in tqdm(ds.select(range(10000))):
         for i in range(len(item["passages"])):
             items.append(
                 Item(

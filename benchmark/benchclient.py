@@ -42,6 +42,7 @@ async def save_items(idx: int, db: AsyncDB):
     except Exception as e:
         return np.nan, np.nan, e
 
+
 async def send_request(idx: int, db: AsyncDB):
     try:
         start = time()
@@ -51,36 +52,31 @@ async def send_request(idx: int, db: AsyncDB):
     except Exception as e:
         return np.nan, np.nan, np.nan, np.nan, e
 
-# TODO: Rename this to something more fitting → The concept of one user does not make sense
-class User:
+
+class Worker:
     def __init__(self, _db: AsyncDB):
         self.db = _db
-        self.cur_queries = 0
 
     async def run(self, idx, request_type, arrival, start):
-        if max(0, arrival - (time() - start)) == 0:
-            print("Throttling")
         await asyncio.sleep(max(0, arrival - (time() - start)))
         if request_type == 'query':
             return await send_request(idx, self.db), 'query'
         elif request_type == 'insert':
             return await save_items(idx, self.db), 'insert'
 
+
 async def execute_benchmark(async_db, indexing_method, run_number, requests_per_second):
     print("Starting benchmark...")
 
     trace = pickle.load(open(os.path.join(current_dir, 'trace/trace.pkl'), 'rb'))
-
-    user = User(async_db)
-
-    tasks = []
+    worker = Worker(async_db)
     arrivals = make_arrivals(len(trace), requests_per_second)
 
     start = time()
+    tasks = []
     for t, arrival in zip(trace, arrivals):
         type, idx = t[0], t[1]
-        tasks.append(asyncio.create_task(user.run(idx, type, arrival, start)))
-
+        tasks.append(asyncio.create_task(worker.run(idx, type, arrival, start)))
     results = await tqdm.gather(*tasks, mininterval=10)
 
     item_log, query_log = [], []
@@ -89,7 +85,6 @@ async def execute_benchmark(async_db, indexing_method, run_number, requests_per_
             item_log.append(r)
         elif t == 'query':
             query_log.append(r)
-
 
     item_df = pd.DataFrame(item_log, columns=['start_time', 'end_time', 'error_string'])
     query_df = pd.DataFrame(query_log, columns=['start_time', 'end_time', 'qid_array', 'query_id', 'error_string'])

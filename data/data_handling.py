@@ -1,7 +1,7 @@
 from sentence_transformers import SentenceTransformer
 from datasets import load_dataset
 
-
+# NOTE: This assumes that you have a gpu available
 model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2', device="cuda:0")
 
 
@@ -24,15 +24,10 @@ def load_ds_with_embeddings():
 
 if __name__ == "__main__":
     test_ds = load_dataset("microsoft/ms_marco", "v2.1", split="test")
-    train_ds = load_dataset("microsoft/ms_marco", "v2.1", split="train")
 
     # Filter out passages with num texts != 10 to remove bias from ds
     test_ds = test_ds.filter(lambda x: len(x["passages"]["passage_text"]) == 10)
-    train_ds = train_ds.filter(lambda x: len(x["passages"]["passage_text"]) == 10)
 
     print("> Making embeddings for test set")
     test_ds_embeddings = test_ds.map(make_embeddings, batched=True)
     test_ds_embeddings.save_to_disk("./dataset/test_dataset.hf")
-
-    print("> Making embeddings for train set")
-    train_ds.map(make_embeddings, batched=True).save_to_disk("./dataset/train_dataset.hf")
