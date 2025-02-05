@@ -1,7 +1,16 @@
+import os
 import math
 from collections import defaultdict
 
 import numpy as np
+import pandas as pd
+
+current_dir = os.path.dirname(__file__)
+plots_dir = os.path.join(current_dir, "plots")
+benchmark_dir = os.path.join(current_dir, '..', 'benchmark')
+results_dir = os.path.join(benchmark_dir, 'results')
+logs_dir = os.path.join(results_dir, 'logs')
+utilizations_dir = os.path.join(results_dir, 'utilization')
 
 def chunked_average(data, win_size):
     data = np.array(data, dtype=float)
@@ -75,3 +84,29 @@ def get_current_running_requests(df, win_size):
         counts.append(concurrency)
 
     return chunked_average(counts, win_size)
+
+def get_avg_latency_and_total_errors(requests_per_second, request_type, indexing_method):
+    latencies = []
+    errors = []
+    for f in os.listdir(logs_dir):
+        if requests_per_second in f and request_type in f and indexing_method in f:
+            df = pd.read_pickle(os.path.join(logs_dir, f))
+
+            start = df['start_time']
+            end = df['end_time']
+
+            for s, e in zip(start, end):
+                if math.isnan(s):
+                    errors.append(1)
+                else:
+                    latencies.append(e - s)
+
+    print("Num errs:", len(errors))
+    print("Avg latency:", np.mean(np.array(latencies)))
+
+if __name__ == "__main__":
+    get_avg_latency_and_total_errors(
+        "15",
+        "query",
+        "ivfflat"
+    )
