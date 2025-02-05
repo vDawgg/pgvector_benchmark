@@ -61,7 +61,7 @@ def plot_latency(df, request_type, indexing_method, request_rate, run_number, wi
     make_single_plot(
         latencies,
         "Latency (seconds)",
-        "Requests",
+        f"Requests (x{win_size})",
         title,
         f'latency_{request_type}_{indexing_method}_req{request_rate}_{run_number}.png'
     )
@@ -79,7 +79,7 @@ def plot_latency_and_err_rate(df, request_type, indexing_method, request_rate, r
         err_rate,
         ["Latency", "Error Rate"],
         ["Latency (seconds)", "Error Rate"],
-        'Requests',
+        f'Requests (x{win_size})',
         title,
         f'latency_and_err_{request_type}_{indexing_method}_req{request_rate}_{run_number}.png'
     )
@@ -125,7 +125,7 @@ def plot_throughput(df, request_type, indexing_method, requests_per_second, run_
     make_single_plot(
         throughput,
         "Throughput",
-        "Time (seconds)",
+        "Time (minutes)",
         title,
         f'throughput_{request_type}_{indexing_method}_req{requests_per_second}_{run_number}.png'
     )
@@ -141,7 +141,7 @@ def plot_throughput_and_err_rate(df, request_type, indexing_method, requests_per
         error_rate,
         ["Throughput", "Error Rate"],
         ["Throughput (req/sec)", "Error Rate"],
-        'Time (seconds)',
+        'Time (minutes)',
         title,
         f'throughput_and_err_{request_type}_{indexing_method}_req{requests_per_second}_{run_number}.png'
     )
@@ -224,28 +224,28 @@ def make_combined_plots():
             make_overlying_plot(
                 data[im][rt]["throughput"][10],
                 "Throughput (req/sec)",
-                "Time (seconds)",
+                "Time (minutes)",
                 f"Throughput Over Time For All Runs [{im if im != 'none' else 'No indexing'}, {rt}, 10 req/sec]",
                 f"throughput_all_{rt}_{im}_req10.png"
             )
             make_overlying_plot(
                 data[im][rt]["throughput"][15],
                 "Throughput (req/sec)",
-                "Time (seconds)",
+                "Time (minutes)",
                 f"Throughput Over Time For All Runs [{im if im != 'none' else 'No indexing'}, {rt}, 15 req/sec]",
                 f"throughput_all_{rt}_{im}_req15.png"
             )
             make_overlying_plot(
                 data[im][rt]["latency"][10],
                 "Latency (seconds)",
-                "Requests",
+                "Requests (x60)",
                 f"Latency Over Time For All Runs [{im if im != 'none' else 'No indexing'}, {rt}, 10 req/sec]",
                 f"latency_all_{rt}_{im}_req10.png"
             )
             make_overlying_plot(
                 data[im][rt]["latency"][15],
                 "Latency (seconds)",
-                "Requests",
+                "Requests (x60)",
                 f"Latency Over Time For All Runs [{im if im != 'none' else 'No indexing'}, {rt}, 15 req/sec]",
                 f"latency_all_{rt}_{im}_req15.png"
             )
