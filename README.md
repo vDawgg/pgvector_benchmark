@@ -80,6 +80,11 @@ after everything has finished.
 
 For the script to work properly, set the values in [env.py](./deployment/env.py) with your config.
 
+After this, initialize terraform by running:
+```shell
+terraform init
+```
+
 Example run → Run Nr. 1, hnsw indexing method, 10 requests per second, run 1:
 ```shell
 python deploy_and_run.py --indexing_method hnsw --requests_per_second 10 --run_number 1
